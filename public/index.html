@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UzCity Online</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Crect x='-6' y='-6' width='12' height='12' fill='%23C8323C'/%3E%3Crect x='-6' y='-6' width='12' height='12' fill='%23F2B632' transform='rotate(45)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- ===== Kirish oynasi ===== -->
+  <section id="lobby">
+    <div class="lobby-card">
+      <h1 class="logo">
+        <svg class="girih" viewBox="-10 -10 20 20" aria-hidden="true"><rect x="-6.5" y="-6.5" width="13" height="13"/><rect x="-6.5" y="-6.5" width="13" height="13" transform="rotate(45)"/><circle r="3.2"/></svg>
+        UzCity
+      </h1>
+      <p class="tagline">Toshkentdan boshlanadigan ochiq dunyo. Do‘stlaringiz bilan bitta shaharda yuring, ovozli gaplashing va boshqa davlatlarga uching.</p>
+
+      <label class="field">Ismingiz
+        <input id="in-name" maxlength="16" placeholder="Masalan, Sardor" autocomplete="nickname">
+      </label>
+      <div class="field">Ko‘ylak rangi
+        <div id="swatches" class="swatches" role="radiogroup" aria-label="Ko‘ylak rangi"></div>
+      </div>
+      <div class="field">Bosh kiyim
+        <div class="seg" id="hat-seg">
+          <button type="button" data-hat="doppi" class="on">Do‘ppi</button>
+          <button type="button" data-hat="kepka">Kepka</button>
+          <button type="button" data-hat="yoq">Yo‘q</button>
+        </div>
+      </div>
+      <label class="field">Xona kodi
+        <input id="in-room" maxlength="24" placeholder="umumiy">
+        <small>Do‘stlaringiz ham shu kodni kiritsa, hammangiz bitta shaharda bo‘lasiz.</small>
+      </label>
+      <div class="actions">
+        <button id="btn-online" class="primary" type="button">Do‘stlar bilan o‘ynash</button>
+        <button id="btn-offline" type="button">Yolg‘iz o‘ynash</button>
+      </div>
+      <p id="lobby-status" class="status" role="status"></p>
+    </div>
+
+    <aside class="controls-card" aria-label="Boshqaruv">
+      <h2>Boshqaruv</h2>
+      <dl>
+        <dt>W A S D</dt><dd>Yurish / haydash</dd>
+        <dt>Shift</dt><dd>Yugurish</dd>
+        <dt>Probel</dt><dd>Sakrash, mashinada — tormoz</dd>
+        <dt>E</dt><dd>Mashinaga chiqish, aeroport, qamoqdagi ishlar</dd>
+        <dt>V</dt><dd>Birinchi shaxs / uchinchi shaxs kamerasi</dd>
+        <dt>B (bosib turing)</dt><dd>Ovozli gapirish</dd>
+        <dt>G</dt><dd>Ovoz: yaqin atrof yoki butun xona</dd>
+        <dt>T</dt><dd>Chat</dd>
+        <dt>M</dt><dd>Katta xarita</dd>
+        <dt>Y</dt><dd>Politsiyaga taslim bo‘lish</dd>
+        <dt>H</dt><dd>Yordam</dd>
+      </dl>
+      <p class="note">Hozircha kompyuterda — klaviatura va sichqoncha bilan o‘ynaladi.</p>
+    </aside>
+  </section>
+
+  <!-- ===== O‘yin ekrani ===== -->
+  <div id="hud" hidden>
+    <div id="hud-tl">
+      <div id="loc"></div>
+      <div id="clock"></div>
+    </div>
+    <div id="hud-tr">
+      <div id="stars" aria-label="Qidiruv darajasi"></div>
+      <div id="money"></div>
+      <div class="bar" aria-label="Sog‘liq"><i id="health"></i></div>
+    </div>
+    <canvas id="minimap" width="200" height="200" aria-label="Xarita"></canvas>
+    <div id="speedo" hidden><b id="speed">0</b><span>km/soat</span></div>
+    <div id="prompt" hidden></div>
+    <div id="voice-ind"></div>
+    <div id="crosshair" hidden></div>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="chat">
+      <div id="chat-log"></div>
+      <input id="chat-input" maxlength="140" placeholder="Xabar yozing va Enter bosing" hidden>
+    </div>
+    <div id="prison-hud" hidden>
+      <div class="ph-title">Muddat</div>
+      <div id="ph-time"></div>
+      <div class="ph-bar"><i id="ph-progress"></i></div>
+      <div id="ph-activity"></div>
+      <div id="ph-note"></div>
+    </div>
+    <div id="hint">H — yordam</div>
+  </div>
+
+  <div id="overlay-airport" class="overlay" hidden>
+    <div class="panel">
+      <h2 id="airport-title">Qayerga uchasiz?</h2>
+      <div id="flights"></div>
+      <button type="button" class="ghost" data-close>Yopish</button>
+    </div>
+  </div>
+
+  <div id="overlay-flight" class="overlay dark" hidden>
+    <div class="flight">
+      <div id="flight-route"></div>
+      <div class="track"><i id="flight-progress"></i></div>
+      <p class="muted">Parvoz davom etmoqda…</p>
+    </div>
+  </div>
+
+  <div id="overlay-court" class="overlay dark" hidden>
+    <div class="panel court">
+      <h2>Sud qarori</h2>
+      <p class="muted" id="court-intro"></p>
+      <ul id="court-crimes"></ul>
+      <p class="verdict" id="court-verdict"></p>
+      <p class="muted">Jazoni o‘tash davomida kun tartibiga rioya qilsangiz va ishlasangiz, muddatdan oldin ozod bo‘lishingiz mumkin.</p>
+      <button type="button" class="primary" data-close>Qabul qilish</button>
+    </div>
+  </div>
+
+  <div id="overlay-help" class="overlay" hidden>
+    <div class="panel help">
+      <h2>Qanday o‘ynaladi</h2>
+      <p>Shahar bo‘ylab yuring, o‘z mashinangizga (“01 A 777 UZ”) chiqing va do‘stlaringiz bilan uchrashing. Aeroportdan boshqa davlatlarga uchish mumkin.</p>
+      <p>Mashinada odamni urib yuborsangiz, jinoiy ish ochiladi. Qochib ketsangiz ham, “Xavfsiz shahar” kameralari sizni topadi va qidiruvda bo‘lganingizda chegaradan o‘tolmaysiz. O‘zingiz taslim bo‘lsangiz [Y], jazo yengillashadi.</p>
+      <p>Qamoqxonada kun tartibi bor: ish, ovqat, uyqu. Tartibga rioya qilish va ishlash muddatni qisqartiradi.</p>
+      <button type="button" class="primary" data-close>Tushunarli</button>
+    </div>
+  </div>
+
+  <div id="overlay-map" class="overlay" hidden>
+    <div class="panel map-panel">
+      <canvas id="bigmap" width="620" height="620" aria-label="Katta xarita"></canvas>
+      <button type="button" class="ghost" data-close>Yopish (M)</button>
+    </div>
+  </div>
+
+  <div id="click-to-play" hidden>Boshqarishni davom ettirish uchun ekranni bosing</div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
