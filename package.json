@@ -1,0 +1,19 @@
+{
+  "name": "uzcity-online",
+  "version": "0.1.0",
+  "description": "Blokli ochiq dunyo onlayn o‘yini: Toshkent, politsiya, qamoqxona, do‘stlar bilan ovozli chat",
+  "type": "module",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "three": "0.160.0",
+    "ws": "^8.18.0"
+  },
+  "license": "MIT"
+}
