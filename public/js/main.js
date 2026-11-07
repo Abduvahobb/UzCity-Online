@@ -8,6 +8,7 @@ import { Prison } from './prison.js';
 import { Network } from './network.js';
 import { Voice } from './voice.js';
 import { UI } from './ui.js';
+import { TouchControls, isTouchDevice } from './touch.js';
 
 const SHIRT_COLORS = ['#2BB5B0', '#C8323C', '#F2B632', '#2D6CB5', '#3F8F5A', '#6B4FA0', '#F3F6F9', '#22262B'];
 const FLIGHT_PRICE = 400000;
@@ -17,22 +18,27 @@ const WALK = 4.2, RUN = 8.2;
 const PLATE = '01 A 777 UZ';
 
 const lerpColor = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), t);
+const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+const NO_AXIS = { x: 0, y: 0 };
 
 class Game {
   constructor() {
     // ----- Render -----
+    // Telefonda yengil rejim: soyalarsiz, kamroq piksel va kamroq odam/mashina
+    this.mobile = isTouchDevice();
+    document.body.classList.toggle('touch', this.mobile);
     const canvas = document.getElementById('game');
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !this.mobile });
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, this.mobile ? 1 : 1.75));
     this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !this.mobile;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog('#8CC8EE', 90, 430);
-    this.camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 1500);
+    this.scene.fog = new THREE.Fog('#8CC8EE', 90, this.mobile ? 320 : 430);
+    this.camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, this.mobile ? 0.25 : 0.1, 1500);
     this.hemi = new THREE.HemisphereLight('#DDEEFF', '#6B7A4A', 0.9);
     this.sun = new THREE.DirectionalLight('#FFF1D6', 2);
-    this.sun.castShadow = true;
+    this.sun.castShadow = !this.mobile;
     this.sun.shadow.mapSize.set(2048, 2048);
     Object.assign(this.sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 400 });
     this.sun.shadow.bias = -0.0006;
@@ -47,9 +53,9 @@ class Game {
     this.ui = new UI();
     this.world = new World(this.scene);
     this.peds = new Pedestrians(this.world);
-    this.peds.populate(36);
+    this.peds.populate(this.mobile ? 16 : 36);
     this.traffic = new Traffic(this.world);
-    this.traffic.populate(16);
+    this.traffic.populate(this.mobile ? 8 : 16);
     this.setupPrisonPeople();
     this.cars = [];
     this.setupCars();
@@ -85,6 +91,7 @@ class Game {
 
     this.setupLobby();
     this.setupInput();
+    this.touch = this.mobile ? new TouchControls(this) : null;
     this.clockObj = new THREE.Clock();
     this.renderer.setAnimationLoop(() => this.frame());
   }
@@ -195,7 +202,11 @@ class Game {
     this.ui.toast(`Xush kelibsiz, ${this.profile.name}! Oq mashinangiz (${PLATE}) shu yerda turibdi.`, 'good', 6000);
     if (online) this.ui.addChat('', 'Chat uchun T, ovoz uchun B ni bosib turing.', true);
     else this.ui.addChat('', 'Yolg‘iz rejim. Do‘stlar bilan o‘ynash uchun serverni ishga tushiring (README).', true);
-    document.getElementById('game').requestPointerLock?.();
+    if (this.touch) this.touch.root.hidden = false;
+    if (this.mobile) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+      screen.orientation?.lock?.('landscape').catch(() => {});
+    } else document.getElementById('game').requestPointerLock?.();
   }
 
   // ======================= Boshqaruv =======================
@@ -208,10 +219,7 @@ class Game {
     this.hintEl = hint;
     document.addEventListener('mousemove', (e) => {
       if (document.pointerLockElement !== canvas) return;
-      const s = 0.0024;
-      if (this.player.car && !this.cam.fps) { this.cam.carOffset -= e.movementX * s; this.cam.carIdle = 0; }
-      else this.cam.yaw -= e.movementX * s;
-      this.cam.pitch = Math.max(-1.2, Math.min(0.7, this.cam.pitch - e.movementY * s));
+      this.look(e.movementX * 0.0024, e.movementY * 0.0024);
     });
     const chatInput = document.getElementById('chat-input');
     chatInput.addEventListener('keydown', (e) => {
@@ -224,26 +232,45 @@ class Game {
     });
     addEventListener('keydown', (e) => {
       if (!this.started || e.target.tagName === 'INPUT') return;
-      this.keys.add(e.code);
-      if (e.repeat) return;
-      switch (e.code) {
-        case 'KeyE': this.interact(); break;
-        case 'KeyV': this.cam.fps = !this.cam.fps; break;
-        case 'KeyT': if (this.net.connected) { e.preventDefault(); this.ui.openChat(); } else this.ui.toast('Chat faqat onlayn rejimda ishlaydi.'); break;
-        case 'KeyM': this.ui.toggleOverlay('overlay-map'); break;
-        case 'KeyH': this.ui.toggleOverlay('overlay-help'); break;
-        case 'KeyY': if (!this.jailed) this.police.surrender(); break;
-        case 'KeyG': this.voice.toggleMode(); break;
-        case 'KeyB': this.voice.setTalking(true); break;
-        case 'Escape': for (const id of ['overlay-map', 'overlay-help', 'overlay-airport']) if (!document.getElementById(id).hidden) this.ui.closeOverlay(id); break;
-      }
+      if (e.repeat) { this.keys.add(e.code); return; }
+      if (e.code === 'KeyT' && this.net.connected) e.preventDefault();
+      this.press(e.code);
     });
-    addEventListener('keyup', (e) => {
-      this.keys.delete(e.code);
-      if (e.code === 'KeyB') this.voice.setTalking(false);
-    });
+    addEventListener('keyup', (e) => this.release(e.code));
     addEventListener('blur', () => this.keys.clear());
   }
+
+  // Kamerani burish (sichqoncha yoki barmoq)
+  look(dx, dy) {
+    if (this.player.car && !this.cam.fps) { this.cam.carOffset -= dx; this.cam.carIdle = 0; }
+    else this.cam.yaw -= dx;
+    this.cam.pitch = Math.max(-1.2, Math.min(0.7, this.cam.pitch - dy));
+  }
+
+  // Tugma bosildi (klaviatura yoki telefondagi tugma)
+  press(code) {
+    if (!this.started) return;
+    this.keys.add(code);
+    switch (code) {
+      case 'KeyE': this.interact(); break;
+      case 'KeyV': this.cam.fps = !this.cam.fps; break;
+      case 'KeyT': if (this.net.connected) this.ui.openChat(); else this.ui.toast('Chat faqat onlayn rejimda ishlaydi.'); break;
+      case 'KeyM': this.ui.toggleOverlay('overlay-map'); break;
+      case 'KeyH': this.ui.toggleOverlay('overlay-help'); break;
+      case 'KeyY': if (!this.jailed) this.police.surrender(); break;
+      case 'KeyG': this.voice.toggleMode(); break;
+      case 'KeyB': this.voice.setTalking(true); break;
+      case 'Escape': for (const id of ['overlay-map', 'overlay-help', 'overlay-airport']) if (!document.getElementById(id).hidden) this.ui.closeOverlay(id); break;
+    }
+  }
+
+  release(code) {
+    this.keys.delete(code);
+    if (code === 'KeyB') this.voice.setTalking(false);
+  }
+
+  // Joystik holati (telefonda); oyna ochiq bo‘lsa — harakat yo‘q
+  stick() { return this.touch && !this.ui.overlayOpen() && !this.ui.chatOpen ? this.touch.axis : NO_AXIS; }
 
   key(c) { return this.keys.has(c) && !this.ui.chatOpen && !this.ui.overlayOpen(); }
 
@@ -390,6 +417,7 @@ class Game {
     this.prison.update(dt);
     this.net.update(dt);
     this.voice.update();
+    this.touch?.update();
     for (const m of this.world.markers) m.scale.setScalar(1 + Math.sin(performance.now() / 300) * 0.08);
 
     this.updateCamera(dt);
@@ -418,8 +446,9 @@ class Game {
       p.ch.group.rotation.x = -Math.PI / 2; p.ch.group.position.y = 0.25;
       if (p.down <= 0) { p.ch.group.rotation.x = 0; p.ch.group.position.y = 0; }
     } else {
-      const f = (this.key('KeyW') ? 1 : 0) - (this.key('KeyS') ? 1 : 0);
-      const s = (this.key('KeyD') ? 1 : 0) - (this.key('KeyA') ? 1 : 0);
+      const ax = this.stick();
+      const f = clamp1((this.key('KeyW') ? 1 : 0) - (this.key('KeyS') ? 1 : 0) + ax.y);
+      const s = clamp1((this.key('KeyD') ? 1 : 0) - (this.key('KeyA') ? 1 : 0) + ax.x);
       const cy = this.cam.yaw;
       mx = Math.sin(cy) * f - Math.cos(cy) * s;
       mz = Math.cos(cy) * f + Math.sin(cy) * s;
@@ -427,7 +456,8 @@ class Game {
       if (len > 0) { mx /= len; mz /= len; }
       if (this.key('Space') && p.onGround) { p.vy = 7.2; p.onGround = false; }
     }
-    const speed = (this.key('ShiftLeft') || this.key('ShiftRight')) ? RUN : WALK;
+    const ax = this.stick();
+    const speed = (this.key('ShiftLeft') || this.key('ShiftRight') || Math.hypot(ax.x, ax.y) > 0.85) ? RUN : WALK;
     const moving = mx !== 0 || mz !== 0;
     p.pos.x += mx * speed * dt;
     p.pos.z += mz * speed * dt;
@@ -466,10 +496,11 @@ class Game {
 
   updateDriving(dt) {
     const car = this.player.car, p = this.player;
-    const thr = (this.key('KeyW') ? 1 : 0) - (this.key('KeyS') ? 1 : 0);
-    const steer = (this.key('KeyA') ? 1 : 0) - (this.key('KeyD') ? 1 : 0);
-    if (thr > 0) car.speed += (car.speed < 0 ? 24 : 13) * dt;
-    else if (thr < 0) car.speed -= (car.speed > 0 ? 24 : 8) * dt;
+    const ax = this.stick();
+    const thr = clamp1((this.key('KeyW') ? 1 : 0) - (this.key('KeyS') ? 1 : 0) + (Math.abs(ax.y) > 0.25 ? ax.y : 0));
+    const steer = clamp1((this.key('KeyA') ? 1 : 0) - (this.key('KeyD') ? 1 : 0) - ax.x);
+    if (thr > 0) car.speed += (car.speed < 0 ? 24 : 13) * thr * dt;
+    else if (thr < 0) car.speed -= (car.speed > 0 ? 24 : 8) * -thr * dt;
     else car.speed *= 1 - 0.45 * dt;
     if (this.key('Space')) car.speed *= 1 - 3.5 * dt;
     car.speed = Math.max(-9, Math.min(33, car.speed));
@@ -623,7 +654,7 @@ class Game {
     for (const car of this.cars) if (car.owned && car.country === c.id && car !== p.car) dots.push({ x: car.root.position.x, z: car.root.position.z, color: '#F2B632' });
     const me = { x: pos.x, z: pos.z, yaw: p.car ? p.car.root.rotation.y : p.yaw };
     this.ui.drawMinimap(this.world, c, me, dots);
-    this.hintEl.hidden = document.pointerLockElement === this.renderer.domElement || this.ui.overlayOpen() || this.ui.chatOpen || this.keys.size > 0;
+    this.hintEl.hidden = this.mobile || document.pointerLockElement === this.renderer.domElement || this.ui.overlayOpen() || this.ui.chatOpen || this.keys.size > 0;
     if (!document.getElementById('overlay-map').hidden) this.ui.drawMinimap(this.world, c, me, dots, true);
   }
 }

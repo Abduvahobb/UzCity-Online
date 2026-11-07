@@ -16,8 +16,10 @@ export class Network {
   }
 
   connect(profile) {
+    // Server manzili config.js da beriladi (telefon ilovasi uchun); bo‘sh bo‘lsa — shu sayt
+    const base = (window.UZCITY_SERVER || '').trim().replace(/\/+$/, '');
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    const url = `${proto}://${location.host}`;
+    const url = base ? base.replace(/^http/, 'ws') : `${proto}://${location.host}`;
     return new Promise((resolve, reject) => {
       let done = false;
       const fail = (msg) => { if (!done) { done = true; reject(new Error(msg)); } };

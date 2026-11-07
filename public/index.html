@@ -2,13 +2,15 @@
 <html lang="uz">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0F2347">
   <title>UzCity Online</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Crect x='-6' y='-6' width='12' height='12' fill='%23C8323C'/%3E%3Crect x='-6' y='-6' width='12' height='12' fill='%23F2B632' transform='rotate(45)'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three.module.js" } }
   </script>
@@ -51,7 +53,16 @@
 
     <aside class="controls-card" aria-label="Boshqaruv">
       <h2>Boshqaruv</h2>
-      <dl>
+      <dl class="only-touch">
+        <dt>Chapdagi doira</dt><dd>Yurish va haydash (oxirigacha sursangiz — yugurish)</dd>
+        <dt>Ekranni surish</dt><dd>Atrofga qarash</dd>
+        <dt>E</dt><dd>Mashinaga chiqish, aeroport, qamoqdagi ishlar</dd>
+        <dt>⤒</dt><dd>Sakrash, mashinada — tormoz</dd>
+        <dt>🎤</dt><dd>Bosib turib gapirish</dd>
+        <dt>📻</dt><dd>Ovoz: yaqin atrof yoki butun xona</dd>
+        <dt>👁 💬 🗺 ?</dt><dd>Kamera, chat, xarita, yordam</dd>
+      </dl>
+      <dl class="only-desktop">
         <dt>W A S D</dt><dd>Yurish / haydash</dd>
         <dt>Shift</dt><dd>Yugurish</dd>
         <dt>Probel</dt><dd>Sakrash, mashinada — tormoz</dd>
@@ -64,7 +75,7 @@
         <dt>Y</dt><dd>Politsiyaga taslim bo‘lish</dd>
         <dt>H</dt><dd>Yordam</dd>
       </dl>
-      <p class="note">Hozircha kompyuterda — klaviatura va sichqoncha bilan o‘ynaladi.</p>
+      <p class="note">Kompyuterda klaviatura va sichqoncha, telefonda ekrandagi tugmalar bilan o‘ynaladi.</p>
     </aside>
   </section>
 
@@ -142,6 +153,14 @@
       <button type="button" class="ghost" data-close>Yopish (M)</button>
     </div>
   </div>
+
+  <!-- ===== Telefon boshqaruvi ===== -->
+  <div id="touch" hidden>
+    <div class="stick" aria-label="Yurish"><div class="knob"></div></div>
+    <div id="touch-btns"></div>
+    <button type="button" id="touch-surrender" hidden>Politsiyaga taslim bo‘lish</button>
+  </div>
+  <div id="rotate">Telefonni yotqizib ushlang</div>
 
   <div id="click-to-play" hidden>Boshqarishni davom ettirish uchun ekranni bosing</div>
 

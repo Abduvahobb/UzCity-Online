@@ -353,7 +353,7 @@ export class World {
     const { ox, oz } = c;
     // Yer: o‘t va asfalt
     const grass = new THREE.Mesh(new THREE.PlaneGeometry(BOUND * 2 + 400, BOUND * 2 + 400), mat(c.ground));
-    grass.rotation.x = -Math.PI / 2; grass.position.set(ox, -0.02, oz); grass.receiveShadow = true;
+    grass.rotation.x = -Math.PI / 2; grass.position.set(ox, -0.3, oz); grass.receiveShadow = true;
     c.group.add(grass);
     const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(CITY * 2, CITY * 2), mat('#3E4247'));
     asphalt.rotation.x = -Math.PI / 2; asphalt.position.set(ox, 0.005, oz); asphalt.receiveShadow = true;
@@ -400,13 +400,13 @@ export class World {
         if (!this.edgeOpen(c, k, l, nk, nl)) continue;
         const horiz = nl === l;
         for (let t = HALF + 6; t < CELL - HALF - 3; t += 6) {
-          if (horiz) B.box(3, 0.02, 0.22, '#E9E6DA', px + t, 0.02, pz);
-          else B.box(0.22, 0.02, 3, '#E9E6DA', px, 0.02, pz + t);
+          if (horiz) B.box(3, 0.02, 0.22, '#E9E6DA', px + t, 0.035, pz);
+          else B.box(0.22, 0.02, 3, '#E9E6DA', px, 0.035, pz + t);
         }
         // zebra
         for (const end of [HALF + 1.6, CELL - HALF - 1.6]) for (let b = -5; b <= 5; b += 2.2) {
-          if (horiz) B.box(2.6, 0.02, 0.8, '#ECEBE4', px + end, 0.021, pz + b);
-          else B.box(0.8, 0.02, 2.6, '#ECEBE4', px + b, 0.021, pz + end);
+          if (horiz) B.box(2.6, 0.02, 0.8, '#ECEBE4', px + end, 0.04, pz + b);
+          else B.box(0.8, 0.02, 2.6, '#ECEBE4', px + b, 0.04, pz + end);
         }
         // mashina to‘xtash joylari (yo‘l chetida)
         if (Math.random() < 0.35) {

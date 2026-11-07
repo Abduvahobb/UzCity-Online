@@ -168,6 +168,74 @@ button:disabled { opacity: 0.5; cursor: progress; }
   border: 1px solid var(--line); padding: 14px 22px; border-radius: 12px; font-weight: 500; pointer-events: none;
 }
 
+/* ===== Telefon ===== */
+#lobby, .overlay, #click-to-play { z-index: 10; }
+.only-touch { display: none !important; }
+body.touch .only-touch { display: grid !important; }
+body.touch .only-desktop { display: none !important; }
+canvas#game { touch-action: none; }
+#touch { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+#touch .stick {
+  position: absolute; left: max(22px, env(safe-area-inset-left)); bottom: 22px; width: 132px; height: 132px; border-radius: 50%;
+  background: rgba(13, 31, 61, 0.45); border: 2px solid rgba(243, 246, 249, 0.35); pointer-events: auto; touch-action: none;
+}
+#touch .knob {
+  position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%;
+  background: rgba(243, 246, 249, 0.85); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+#touch-btns {
+  position: absolute; right: max(18px, env(safe-area-inset-right)); bottom: 18px;
+  display: grid; grid-template-columns: repeat(4, auto); gap: 9px; align-items: end; justify-items: center;
+}
+.tbtn {
+  pointer-events: auto; touch-action: none; width: 46px; height: 46px; border-radius: 50%;
+  border: 2px solid rgba(243, 246, 249, 0.4); background: rgba(13, 31, 61, 0.6); color: var(--ohak);
+  font: 800 19px var(--display); display: grid; place-items: center; padding: 0;
+}
+.tbtn.mid { width: 60px; height: 60px; font-size: 24px; grid-column: 3; }
+.tbtn.big { width: 76px; height: 76px; font-size: 30px; grid-column: 4; background: var(--zafar); color: var(--lojuvard-deep); border-color: transparent; }
+.tbtn.on { background: var(--firuza); color: var(--lojuvard-deep); }
+#touch-surrender {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); pointer-events: auto;
+  border: 0; border-radius: 12px; padding: 10px 16px; background: var(--anor); color: var(--ohak); font: 700 15px var(--text);
+}
+#rotate { display: none; }
+body.touch #hint, body.touch #click-to-play, body.touch #voice-ind { display: none !important; }
+body.touch #loc { font-size: 18px; }
+body.touch #clock { font-size: 13px; }
+body.touch #hud-tl { top: 10px; left: max(14px, env(safe-area-inset-left)); }
+body.touch #hud-tr { top: 8px; right: max(14px, env(safe-area-inset-right)); }
+body.touch #stars svg { width: 22px; height: 22px; }
+body.touch #money { font-size: 18px; }
+body.touch .bar { width: 110px; }
+body.touch #minimap { width: 104px; height: 104px; left: auto; right: max(14px, env(safe-area-inset-right)); top: 84px; bottom: auto; border-width: 3px; }
+body.touch #chat { left: 50%; right: auto; top: 8px; bottom: auto; transform: translateX(-50%); width: min(340px, 38vw); }
+body.touch #chat-log { font-size: 12px; max-height: 64px; }
+body.touch #toasts { top: 78px; width: min(420px, 50vw); }
+body.touch .toast { font-size: 13px; padding: 7px 12px; }
+body.touch #prompt { bottom: 150px; font-size: 14px; padding: 8px 14px; }
+body.touch #speedo { left: 50%; bottom: 70px; transform: translateX(-50%); text-align: center; }
+body.touch #speedo b { font-size: 40px; }
+body.touch #prison-hud { top: 60px; left: max(14px, env(safe-area-inset-left)); width: 210px; padding: 8px 10px; }
+body.touch #ph-time { font-size: 22px; }
+body.touch .panel { padding: 16px 18px; gap: 10px; }
+body.touch .panel h2 { font-size: 24px; }
+/* Past ekranlar (telefon yotqizilganda): kirish oynasi ixchamroq */
+@media (max-height: 520px) {
+  #lobby { align-items: start; padding: 12px 20px; }
+  .logo { font-size: 44px; }
+  .tagline, .controls-card, .field small { display: none; }
+  .lobby-card { gap: 9px; }
+  input { padding: 8px 11px; }
+  .actions button { padding: 10px 16px; font-size: 16px; }
+}
+@media (orientation: portrait) {
+  body.touch #rotate {
+    display: grid; place-items: center; position: fixed; inset: 0; z-index: 50; padding: 24px; text-align: center;
+    background: var(--lojuvard-deep); color: var(--ohak); font: 800 26px var(--display);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

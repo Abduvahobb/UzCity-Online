@@ -41,6 +41,10 @@ Toshkentdan boshlanadigan blokli ochiq dunyo o‘yini. Do‘stlaringiz bilan bit
 - Ovozli chat: **B** tugmasini bosib turib gapirasiz. Yaqin atrofdagilar eshitadi, ovoz masofa ortgan sari pasayadi. **G** tugmasi bilan butun xonaga gapirish rejimiga o‘tasiz.
 - Do‘stingizni mashinada urib yuborsangiz, u yiqiladi va sizga jinoiy ish ochiladi.
 
+**Telefon**
+- Telefonda ekranga joystik va tugmalar chiqadi, grafika esa telefon uchun yengillashtiriladi.
+- Android uchun APK ilova GitHub’da avtomatik yig‘iladi (pastda “Telefon ilovasi” bo‘limiga qarang).
+
 
 ## Kompyuterda ishga tushirish
 
@@ -91,7 +95,29 @@ git push -u origin main
 
 Bepul tarifda server ishlatilmay tursa uxlab qoladi. Shu sababli birinchi ochilishda bir daqiqacha kutish kerak bo‘lishi mumkin.
 
+## Telefon ilovasi (Android APK)
+
+APK’ni GitHub o‘zi yig‘adi: `public` papkasidagi fayllar o‘zgarganda **Actions** bo‘limida “Android APK” jarayoni ishga tushadi. U taxminan 5–10 daqiqa davom etadi.
+
+**Yuklab olish.** Repository sahifasidagi **Releases** bo‘limini oching va eng yangi relizdagi `UzCity.apk` faylini yuklab oling. Shu havolani do‘stlaringizga ham yuborishingiz mumkin.
+
+**O‘rnatish.** Telefonda faylni oching. Telefon “noma’lum manbalardan o‘rnatish”ga ruxsat so‘rasa, ruxsat bering. Ilova yotiq holatda ochiladi.
+
+**Onlayn o‘ynash.** Ilova do‘stlar bilan o‘ynash uchun internetdagi serverga ulanadi. Serverni Render’ga joylagandan keyin uning manzilini `public/config.js` fayliga yozing, masalan:
+
+```js
+window.UZCITY_SERVER = 'https://uzcity-online.onrender.com';
+```
+
+Faylni saqlaganingizdan keyin GitHub yangi APK yig‘adi. Bu manzil faqat ilova uchun kerak: brauzerda o‘ynaganda o‘yin ochilgan saytning o‘zi server bo‘ladi.
+
+Telefonda APK’siz ham o‘ynash mumkin: Render havolasini telefon brauzerida oching.
+
 ## Boshqaruv
+
+Telefonda: chapdagi doira bilan yuriladi (oxirigacha sursangiz, yuguradi), ekranni surib atrofga qaraladi, o‘ngdagi tugmalar klaviaturadagi tugmalar vazifasini bajaradi.
+
+Kompyuterda:
 
 | Tugma | Vazifasi |
 |---|---|
@@ -121,6 +147,10 @@ public/js/police.js  — jinoyatlar, qidiruv, politsiya
 public/js/prison.js  — sud, kun tartibi, qamoq muddati
 public/js/network.js — onlayn o‘yinchilar
 public/js/voice.js   — ovozli chat (WebRTC)
+public/js/touch.js   — telefon boshqaruvi (joystik va tugmalar)
+public/config.js     — telefon ilovasi uchun server manzili
+capacitor.config.json            — Android ilova sozlamalari
+.github/workflows/android.yml    — APK’ni avtomatik yig‘ish
 ```
 
 ## O‘yinni o‘zgartirish
@@ -138,7 +168,8 @@ public/js/voice.js   — ovozli chat (WebRTC)
 Bu ishlaydigan asos, tayyor tijorat o‘yini emas. Keyingi bosqichda quyidagilarni qo‘shish mumkin:
 
 - **NPC’lar sinxron emas.** Piyodalar, ko‘cha mashinalari va politsiya har bir o‘yinchining kompyuterida alohida hisoblanadi, do‘stlar ularni bir xil ko‘rmaydi. Ularni serverda hisoblash keyingi katta qadam bo‘ladi.
-- **Telefon boshqaruvi yo‘q.** Hozircha faqat klaviatura va sichqoncha bilan o‘ynaladi. Telefon uchun ekrandagi joystik qo‘shish kerak.
+- **Telefonda grafika soddaroq.** Tezlik uchun telefonda soyalar o‘chiriladi, odam va mashinalar soni kamaytiriladi. Juda eski telefonlarda o‘yin sekin ishlashi mumkin.
+- **APK sinov (debug) versiyasi.** Google Play’ga chiqarish uchun imzolangan versiya va dasturchi hisobi kerak bo‘ladi.
 - **Ovozli chat ba’zi tarmoqlarda ulanmasligi mumkin.** Ovoz o‘yinchilar orasida to‘g‘ridan-to‘g‘ri uzatiladi, ba’zi mobil internet tarmoqlari buni to‘sadi. Bunday holda TURN server kerak bo‘ladi: uning manzilini `voice.js` dagi `ICE` ro‘yxatiga qo‘shasiz.
 - **Fizika soddalashtirilgan.** Binolarning ichiga kirib bo‘lmaydi.
 
